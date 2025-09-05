@@ -1,0 +1,19 @@
+# Python
+*.pyc
+__pycache__/
+*.pyo
+*.pyd
+*.db
+*.sqlite3
+
+# Django
+*.log
+*.pot
+*.py[cod]
+*.coverage
+*.pytest_cache/
+*.migrations/
+env/
+venv/
+*.env
+*.DS_Store
