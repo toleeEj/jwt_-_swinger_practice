@@ -1,9 +1,12 @@
 "use client";
+
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { signIn, signOut, useSession } from "next-auth/react";
 import API from "@/lib/api";
 
 export default function LoginPage() {
+  const { data: session } = useSession();
   const [form, setForm] = useState({ username: "", password: "" });
   const [message, setMessage] = useState("");
   const router = useRouter();
@@ -14,7 +17,7 @@ export default function LoginPage() {
       const res = await API.post("auth/login/", form);
       localStorage.setItem("access", res.data.access);
       localStorage.setItem("refresh", res.data.refresh);
-      localStorage.setItem("username", form.username); // save username
+      localStorage.setItem("username", form.username);
       router.push("/todos");
     } catch (error: any) {
       if (error.response) setMessage("Invalid credentials. Please try again.");
@@ -23,12 +26,29 @@ export default function LoginPage() {
     }
   };
 
+  if (session) {
+    // If already logged in with Google, show welcome message
+    return (
+      <div className="flex flex-col items-center justify-center h-screen">
+        <p className="text-xl">Welcome {session.user?.name}</p>
+        <button
+          onClick={() => signOut()}
+          className="mt-4 px-4 py-2 bg-red-500 text-white rounded-lg"
+        >
+          Logout
+        </button>
+      </div>
+    );
+  }
+
   return (
-    <div className="min-h-screen bg-gray-50 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-gray-50 flex flex-col items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
       <div className="w-full max-w-md">
         <h2 className="text-3xl sm:text-4xl font-extrabold text-gray-900 text-center mb-8 tracking-tight">
           Sign In
         </h2>
+
+        {/* Username/password login form */}
         <form
           onSubmit={handleSubmit}
           className="bg-white p-8 rounded-2xl shadow-sm space-y-6"
@@ -63,18 +83,35 @@ export default function LoginPage() {
               />
             </div>
           </div>
+
           <button
             type="submit"
             className="w-full bg-indigo-600 text-white py-3 rounded-lg font-medium hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition-colors"
           >
             Sign In
           </button>
+
           {message && (
             <p className="text-center text-sm text-red-600 bg-red-50 py-2 rounded-lg">
               {message}
             </p>
           )}
         </form>
+
+        {/* OR Divider */}
+        <div className="my-6 flex items-center justify-center space-x-4">
+          <div className="h-px flex-1 bg-gray-300" />
+          <span className="text-sm text-gray-500">OR</span>
+          <div className="h-px flex-1 bg-gray-300" />
+        </div>
+
+        {/* Google Sign-In */}
+        <button
+          onClick={() => signIn("google")}
+          className="w-full px-4 py-3 bg-red-500 text-white rounded-lg font-medium hover:bg-red-600 transition-colors"
+        >
+          Sign in with Google
+        </button>
       </div>
     </div>
   );
